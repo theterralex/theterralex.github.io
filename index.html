@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <title>The TerraLex Member Database</title>
+  <style>
+    body {
+      font-family: "Work Sans", sans-serif;
+      margin: 2rem;
+      background: #f8f9fa;
+      line-height: 1.2;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    h2, h4 {
+      text-align: center;
+      font-weight: 600;
+      line-height: 0.6;
+    }
+    .person {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      line-height: 1.2;
+    }
+    .person p:first-child {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .action-buttons {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .btn {
+      text-align: center;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 3px;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .facebook {
+      background: #4267B2;
+    }
+    .call {
+      background: #06402B;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>The TerraLex 9</h2>
+  <h4>Jagannath University (20)</h4>
+  <h4>Law and Land Administration (9)</h4>
+  <div id="people"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    const csvUrl = 'https://theterralex.github.io/people.csv';
+
+    function isBengali(text) {
+      return /[\u0980-\u09FF]/.test(text);
+    }
+
+    function renderPeople(data) {
+      const container = document.getElementById('people');
+      container.innerHTML = '';
+
+      data.sort((a, b) => {
+        const isBengaliA = isBengali(a.nickname);
+        const isBengaliB = isBengali(b.nickname);
+
+        if (isBengaliA && !isBengaliB) return 1;
+        if (!isBengaliA && isBengaliB) return -1;
+        return a.nickname.localeCompare(b.nickname);
+      });
+
+      data.forEach(person => {
+        const div = document.createElement('div');
+        div.className = 'person';
+
+        const lines = [
+          `👤 ${person.nickname}`,
+          `${person.fullname}`,
+          `${person.phone}`,
+          `${person.district}`,
+          `Blood Group: ${person.blood}`,
+          `${person.college}`
+        ];
+
+        lines.forEach(line => {
+          const p = document.createElement('p');
+          p.textContent = line;
+          div.appendChild(p);
+        });
+
+        const buttonWrapper = document.createElement('div');
+        buttonWrapper.className = 'action-buttons';
+
+        const facebookBtn = document.createElement('a');
+        facebookBtn.href = person.facebook;
+        facebookBtn.target = '_blank';
+        facebookBtn.className = 'btn facebook';
+        facebookBtn.textContent = '🔗 Facebook Profile';
+
+        const callBtn = document.createElement('a');
+        callBtn.href = `tel:${person.phone}`;
+        callBtn.className = 'btn call';
+        callBtn.textContent = `📞 Call "${person.phone}"`;
+
+        buttonWrapper.appendChild(facebookBtn);
+        buttonWrapper.appendChild(callBtn);
+        div.appendChild(buttonWrapper);
+
+        container.appendChild(div);
+      });
+    }
+
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        const people = results.data.filter(p => p.nickname && p.phone);
+        renderPeople(people);
+      }
+    });
+  </script>
+
+</body>
+</html>
