@@ -3,140 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The TerraLex 9</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
-  <title>The TerraLex Member Database</title>
+  <link href="https://fonts.googleapis.com/css2?family=Teachers:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     body {
-      font-family: "Work Sans", sans-serif;
-      margin: 2rem;
-      background: #f8f9fa;
-      line-height: 1.2;
-    }
-    h1 {
+      margin: 0;
+      font-family: "Teachers", sans-serif;
+      background: #eaf0ff;
       text-align: center;
-      font-size: 2rem;
-      margin-bottom: 1rem;
     }
-    h2, h4 {
-      text-align: center;
-      font-weight: 600;
-      line-height: 0.6;
-    }
-    .person {
-      background: white;
-      border: 1px solid #ddd;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 5px;
-      line-height: 1.2;
-    }
-    .person p:first-child {
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-    .action-buttons {
-      margin-top: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .btn {
-      text-align: center;
-      padding: 0.5rem;
-      border: none;
-      border-radius: 3px;
+
+    header {
+      position: sticky;
+      top: 0;
+      background-color: #130cb7;
       color: white;
+      padding: 20px 10px;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 24px;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    header p {
+      margin: 5px 0 15px;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    #search {
+      width: 90%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: "Teachers", sans-serif;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      margin: 20px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .name {
+      background: #130cb7;
+      color: white;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 10px;
+    }
+
+    .info-box {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 0 5px;
+      font-weight: 600;
+    }
+
+    .district {
+      background: #ffe76b;
+      color: #000;
+    }
+
+    .blood {
+      background: #000;
+      color: #fff;
+    }
+
+    .call-btn {
+      display: block;
+      width: 100%;
+      background: #00c851;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 10px;
       text-decoration: none;
-      font-size: 1rem;
-      cursor: pointer;
     }
-    .facebook {
-      background: #4267B2;
+
+    .action-row {
+      display: flex;
+      justify-content: space-around;
+      gap: 10px;
     }
-    .call {
-      background: #06402B;
+
+    .action-btn {
+      flex: 1;
+      padding: 12px 0;
+      border-radius: 8px;
+      background: #00c851;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      text-decoration: none;
+    }
+
+    @media (min-width: 600px) {
+      header h1 { font-size: 28px; }
+      .name { font-size: 22px; }
     }
   </style>
 </head>
 <body>
 
-  <h2>The TerraLex 9</h2>
-  <h4>Jagannath University (20)</h4>
-  <h4>Law and Land Administration (9)</h4>
-  <div id="people"></div>
+  <header>
+    <h1>The TerraLex 9</h1>
+    <p>Law and Land Administration</p>
+    <input type="text" id="search" placeholder="🔍 search names">
+  </header>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <div id="cards"></div>
+
   <script>
-    const csvUrl = 'https://theterralex.github.io/people.csv';
+    async function loadCSV() {
+      const res = await fetch("https://theterralex.github.io/people.csv");
+      const csv = await res.text();
+      const data = Papa.parse(csv, { header: true }).data;
 
-    function isBengali(text) {
-      return /[\u0980-\u09FF]/.test(text);
+      return data.filter(row => row.name && row.district && row.blood && row.phone);
     }
 
-    function renderPeople(data) {
-      const container = document.getElementById('people');
-      container.innerHTML = '';
+    function createCard(person) {
+      const card = document.createElement("div");
+      card.className = "card";
 
-      data.sort((a, b) => {
-        const isBengaliA = isBengali(a.nickname);
-        const isBengaliB = isBengali(b.nickname);
+      // Name (all caps)
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "name";
+      nameDiv.textContent = person.name.toUpperCase();
+      card.appendChild(nameDiv);
 
-        if (isBengaliA && !isBengaliB) return 1;
-        if (!isBengaliA && isBengaliB) return -1;
-        return a.nickname.localeCompare(b.nickname);
-      });
+      // District & Blood group
+      const infoRow = document.createElement("div");
+      infoRow.className = "info-row";
+      infoRow.innerHTML = `
+        <div class="info-box district">🏡 ${person.district}</div>
+        <div class="info-box blood">🩸 ${person.blood}</div>
+      `;
+      card.appendChild(infoRow);
 
-      data.forEach(person => {
-        const div = document.createElement('div');
-        div.className = 'person';
+      // Call button
+      const callBtn = document.createElement("a");
+      callBtn.className = "call-btn";
+      callBtn.href = `tel:${person.phone}`;
+      callBtn.textContent = `📞 Call “${person.phone}”`;
+      card.appendChild(callBtn);
 
-        const lines = [
-          `👤 ${person.nickname}`,
-          `${person.fullname}`,
-          `${person.phone}`,
-          `${person.district}`,
-          `Blood Group: ${person.blood}`,
-          `${person.college}`
-        ];
+      // Actions: W, F, E
+      const actionRow = document.createElement("div");
+      actionRow.className = "action-row";
 
-        lines.forEach(line => {
-          const p = document.createElement('p');
-          p.textContent = line;
-          div.appendChild(p);
+      // Alphabetical order: E, F, W
+      const eBtn = document.createElement("a");
+      eBtn.className = "action-btn";
+      eBtn.href = `mailto:${person.email}`;
+      eBtn.textContent = "E";
+
+      const fBtn = document.createElement("a");
+      fBtn.className = "action-btn";
+      fBtn.href = person.facebook;
+      fBtn.target = "_blank";
+      fBtn.textContent = "F";
+
+      const wBtn = document.createElement("a");
+      wBtn.className = "action-btn";
+      wBtn.href = `https://wa.me/${person.phone.replace(/^0/, "880")}`;
+      wBtn.target = "_blank";
+      wBtn.textContent = "W";
+
+      // Append in alphabetical order
+      actionRow.appendChild(eBtn);
+      actionRow.appendChild(fBtn);
+      actionRow.appendChild(wBtn);
+
+      card.appendChild(actionRow);
+
+      return card;
+    }
+
+    function renderCards(data, searchTerm = "") {
+      const container = document.getElementById("cards");
+      container.innerHTML = "";
+
+      data
+        .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .forEach(person => {
+          container.appendChild(createCard(person));
         });
-
-        const buttonWrapper = document.createElement('div');
-        buttonWrapper.className = 'action-buttons';
-
-        const facebookBtn = document.createElement('a');
-        facebookBtn.href = person.facebook;
-        facebookBtn.target = '_blank';
-        facebookBtn.className = 'btn facebook';
-        facebookBtn.textContent = '🔗 Facebook Profile';
-
-        const callBtn = document.createElement('a');
-        callBtn.href = `tel:${person.phone}`;
-        callBtn.className = 'btn call';
-        callBtn.textContent = `📞 Call "${person.phone}"`;
-
-        buttonWrapper.appendChild(facebookBtn);
-        buttonWrapper.appendChild(callBtn);
-        div.appendChild(buttonWrapper);
-
-        container.appendChild(div);
-      });
     }
 
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        const people = results.data.filter(p => p.nickname && p.phone);
-        renderPeople(people);
-      }
+    document.getElementById("search").addEventListener("input", e => {
+      renderCards(window.peopleData, e.target.value);
+    });
+
+    loadCSV().then(data => {
+      window.peopleData = data;
+      renderCards(data);
     });
   </script>
 
