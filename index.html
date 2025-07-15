@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Teachers:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     body {
@@ -179,19 +180,19 @@
       const eBtn = document.createElement("a");
       eBtn.className = "action-btn";
       eBtn.href = `mailto:${person.email}`;
-      eBtn.textContent = "E";
+      eBtn.innerHTML = `<i class="fa-solid fa-square-envelope"></i>`;
 
       const fBtn = document.createElement("a");
       fBtn.className = "action-btn";
       fBtn.href = person.facebook;
       fBtn.target = "_blank";
-      fBtn.textContent = "F";
+      fBtn.innerHTML = `<i class="fa-brands fa-square-facebook"></i>`;
 
       const wBtn = document.createElement("a");
       wBtn.className = "action-btn";
       wBtn.href = `https://wa.me/${person.phone.replace(/^0/, "880")}`;
       wBtn.target = "_blank";
-      wBtn.textContent = "W";
+      wBtn.innerHTML = `<i class="fa-brands fa-square-whatsapp"></i>`;
 
       // Append in alphabetical order
       actionRow.appendChild(eBtn);
